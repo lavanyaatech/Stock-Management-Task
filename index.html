@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stock Management</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f8f9fa;
+    }
+    /* Navbar */
+    header {
+        background: lightpink;
+        color: black;
+        padding: 15px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    /* Image section below navbar */
+    .image-section {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding: 15px;
+        background: #fff0f5;
+        flex-wrap: wrap;
+    }
+    .image-section img {
+        width: 800px;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    button {
+        background: pink;
+        color: black;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    button:hover {
+        background: #ff69b4;
+        color: white;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+    }
+    th {
+        background: pink;
+        color: black;
+    }
+    tr:nth-child(even) {
+        background: #f2f2f2;
+    }
+    .error {
+        color: red;
+        font-size: 14px;
+    }
+    .dashboard {
+        background: lightyellow;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<header>Stock Management</header>
+
+<!-- Image section -->
+<div class="image-section">
+    <img src="images/img 1.jpg" alt="Stock Image 1">
+    
+</div>
+
+<!-- Login Section -->
+<div class="container" id="login-section">
+    <h2>Login</h2>
+    <input type="text" id="login-username" placeholder="Username">
+    <input type="password" id="login-password" placeholder="Password">
+    <div id="login-error" class="error"></div>
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- Product Management Section -->
+<div class="container" id="product-section" style="display:none;">
+    <div class="dashboard" id="dashboard">Total Products: 0</div>
+    <h2>Product Entry</h2>
+    <input type="text" id="product-name" placeholder="Product Name">
+    <input type="number" id="product-price" placeholder="Price">
+    <input type="number" id="product-stock" placeholder="Stock">
+    <textarea id="product-description" placeholder="Description"></textarea>
+    <div id="product-error" class="error"></div>
+    <button onclick="addProduct()">Add Product</button>
+
+    <h2>Product List</h2>
+    <table id="product-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button style="margin-top:20px;" onclick="goBack()">Back to Login</button>
+</div>
+
+<script>
+    function login() {
+        let username = document.getElementById("login-username").value.trim();
+        let password = document.getElementById("login-password").value.trim();
+        let error = document.getElementById("login-error");
+
+        if (username === "admin" && password === "admin@123") {
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("product-section").style.display = "block";
+            loadProducts();
+        } else {
+            error.textContent = "Invalid username or password!";
+        }
+    }
+
+    function addProduct() {
+        let name = document.getElementById("product-name").value.trim();
+        let price = document.getElementById("product-price").value.trim();
+        let stock = document.getElementById("product-stock").value.trim();
+        let description = document.getElementById("product-description").value.trim();
+        let error = document.getElementById("product-error");
+
+        if (!name || !price || !stock || !description) {
+            error.textContent = "All fields are required!";
+            return;
+        }
+        if (price <= 0 || stock < 0) {
+            error.textContent = "Enter valid price and stock!";
+            return;
+        }
+        error.textContent = "";
+
+        let products = JSON.parse(localStorage.getItem("products")) || [];
+        products.push({ name, price, stock, description });
+        localStorage.setItem("products", JSON.stringify(products));
+
+        document.getElementById("product-name").value = "";
+        document.getElementById("product-price").value = "";
+        document.getElementById("product-stock").value = "";
+        document.getElementById("product-description").value = "";
+
+        loadProducts();
+    }
+
+    function loadProducts() {
+        let products = JSON.parse(localStorage.getItem("products")) || [];
+        let tbody = document.querySelector("#product-table tbody");
+        tbody.innerHTML = "";
+        products.forEach((p, index) => {
+            let row = `<tr>
+                <td>${p.name}</td>
+                <td>${p.price}</td>
+                <td>${p.stock}</td>
+                <td>${p.description}</td>
+                <td><button onclick="deleteProduct(${index})">Delete</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+        document.getElementById("dashboard").textContent = "Total Products: " + products.length;
+    }
+
+    function deleteProduct(index) {
+        let products = JSON.parse(localStorage.getItem("products")) || [];
+        products.splice(index, 1);
+        localStorage.setItem("products", JSON.stringify(products));
+        loadProducts();
+    }
+
+    function goBack() {
+        document.getElementById("login-section").style.display = "block";
+        document.getElementById("product-section").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
